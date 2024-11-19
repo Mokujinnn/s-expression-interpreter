@@ -4,11 +4,11 @@ endif
 
 CXXFLAGS ?= -Wall -Wextra -O0 -g -std=c++20
 OUT_O_DIR ?= build
-# COMMONINC = -I./include
+COMMONINC = -I./include
 SRC = ./src
 ROOT_DIR:=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 
-# override CXXFLAGS += $(COMMONINC)
+override CXXFLAGS += $(COMMONINC)
 
 CPPSRC = calc.cpp
 
@@ -32,7 +32,7 @@ $(DEPS) : $(PREF)/%.d : %.cpp
 
 .PHONY: clean
 clean:
-	rm -rf $(CPPOBJ) $(DEPS) $(PREF) cacl
+	rm -rf $(CPPOBJ) $(DEPS) $(PREF) calc
 
 # targets which we have no need to recollect deps
 NODEPS = clean
