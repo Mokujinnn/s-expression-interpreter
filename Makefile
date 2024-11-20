@@ -2,7 +2,7 @@ ifeq ($(origin CXX),default)
 	CXX = g++
 endif
 
-CXXFLAGS ?= -Wall -Wextra -O0 -g -std=c++20
+CXXFLAGS ?= -Wall -Wextra -O2 -g 
 OUT_O_DIR ?= build
 COMMONINC = -I./include
 SRC = ./src
@@ -10,7 +10,7 @@ ROOT_DIR:=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 
 override CXXFLAGS += $(COMMONINC)
 
-CPPSRC = calc.cpp
+CPPSRC = calc.cpp src/Expression.cpp src/Number.cpp src/Add.cpp src/Sub.cpp src/Mul.cpp src/Div.cpp src/Invalid.cpp
 
 PREF = $(OUT_O_DIR)/obj
 CPPOBJ := $(addprefix $(PREF)/,$(CPPSRC:.cpp=.o))
