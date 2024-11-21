@@ -1,4 +1,4 @@
-#include <algorithm>
+#include <iomanip>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -19,7 +19,7 @@ int main()
     {
         auto abstaract_tree = get_abstract_tree(tokens);
 
-        std::cout << "Result: " << abstaract_tree->eval() << '\n';
+        std::cout << std::fixed << std::setprecision(4) << "Result: " << abstaract_tree->eval() << '\n';
     }
     catch (const std::exception &e)
     {
@@ -78,87 +78,76 @@ std::vector<std::string> tokenize(const std::string &input)
 Expression_ptr get_abstract_tree(const std::vector<std::string> &tokens)
 {
     if (tokens.empty())
-    {
-        throw std::runtime_error("Empty expressioin");
-    }
+        throw std::runtime_error("Empty expression");
 
     Expressions_t expressions;
     std::vector<size_t> fold_indices;
-    bool prev_is_openbracker = false;
-
-    int open_bracket_counter = 0;
 
     for (size_t i = 0; i < tokens.size(); ++i)
     {
-        auto &token = tokens[i];
+        const auto &token = tokens[i];
 
-        if (prev_is_openbracker)
+        if (token == "(")
         {
-            prev_is_openbracker = false;
-            if (token == "+")
-            {
-                expressions.push_back(std::make_unique<Add>());
-            }
-            else if (token == "-")
-            {
-                expressions.push_back(std::make_unique<Sub>());
-            }
-            else if (token == "*")
-            {
-                expressions.push_back(std::make_unique<Mul>());
-            }
-            else if (token == "/")
-            {
-                expressions.push_back(std::make_unique<Div>());
-            }
-            else
-            {
-                throw std::runtime_error("Expected operator after open bracket");
-            }
-        }
-        else if (token == "(")
-        {
-            ++open_bracket_counter;
-            fold_indices.push_back(i);
-            prev_is_openbracker = true;
+            fold_indices.push_back(expressions.size());
         }
         else if (token == ")")
         {
-            if (fold_indices.empty() && tokens.size() != i)
-            {
-                throw std::runtime_error("Close bracker before open bracket");
-            }
+            if (fold_indices.empty())
+                throw std::runtime_error("Mismatched parentheses");
 
-            auto op_index = fold_indices.back() + 1;
-            auto &op = expressions[op_index];
-
+            size_t start_idx = fold_indices.back();
             fold_indices.pop_back();
-            for (size_t j = op_index + 1; j < expressions.size() + open_bracket_counter; ++j)
+
+            if (expressions.size() <= start_idx + 1)
+                throw std::runtime_error("Missing operands in parentheses");
+
+            auto op = std::move(expressions[start_idx]);
+            for (size_t j = start_idx + 1; j < expressions.size(); ++j)
             {
                 op->add_operand(std::move(expressions[j]));
             }
 
-            std::cout << expressions.size() << '\n';
-            // expressions.erase(expressions.end() - (expressions.size() + open_bracket_counter - (op_index + 1)), expressions.end());
-            expressions.resize(expressions.size() + open_bracket_counter - (op_index + 1));
-
-            --open_bracket_counter;
+            expressions.resize(start_idx);
+            expressions.push_back(std::move(op));
         }
-        else if (double num = std::stod(token))
+        else if (token == "+" || token == "-" || token == "*" || token == "/")
         {
-            expressions.push_back(std::make_unique<Number>(num));
+            if (fold_indices.empty() || fold_indices.back() + 1 != i)
+                throw std::runtime_error("Operator outside parentheses");
+
+            if (token == "+")
+                expressions.push_back(std::make_unique<Add>());
+            else if (token == "-")
+                expressions.push_back(std::make_unique<Sub>());
+            else if (token == "*")
+                expressions.push_back(std::make_unique<Mul>());
+            else if (token == "/")
+                expressions.push_back(std::make_unique<Div>());
+            else
+                expressions.push_back(std::make_unique<Invalid>());
         }
         else
         {
-            expressions.push_back(std::make_unique<Invalid>());
+            if (fold_indices.back() + 1 == i)
+            {
+                throw std::runtime_error("Missing operator");
+            }
+
+            try
+            {
+                double num = std::stod(token);
+                expressions.push_back(std::make_unique<Number>(num));
+            }
+            catch (...)
+            {
+                throw std::runtime_error("Invalid number: " + token);
+            }
         }
     }
 
     if (expressions.size() != 1)
-    {
-        throw std::runtime_error("Expected close bracket");
-    }
+        throw std::runtime_error("Malformed expression");
 
-    Expression_ptr main_expr = std::move(expressions[0]);
-    return main_expr;
+    return std::move(expressions[0]);
 }
