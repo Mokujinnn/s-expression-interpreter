@@ -113,7 +113,7 @@ Expression_ptr get_abstract_tree(const std::vector<std::string> &tokens)
         }
         else if (token == "+" || token == "-" || token == "*" || token == "/")
         {
-            if (fold_indices.empty() || fold_indices.back() + 1 != i)
+            if (fold_indices.empty() || tokens[i - 1] != "(")
                 throw std::runtime_error("Operator outside parentheses");
 
             if (token == "+")
