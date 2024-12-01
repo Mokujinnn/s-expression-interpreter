@@ -1,4 +1,7 @@
 ---
 Language: Cpp
-BasedOnStyle: Chromium
-...
+BasedOnStyle: Microsoft
+ColumnLimit: 140
+IndentWidth: 4
+AccessModifierOffset: -4
+BreakConstructorInitializersBeforeComma: true

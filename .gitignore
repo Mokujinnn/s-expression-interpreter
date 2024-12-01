@@ -1,0 +1,11 @@
+# IDE
+
+.vscode
+
+# build
+
+**/build
+**/*.o
+**/*.d
+
+calc
